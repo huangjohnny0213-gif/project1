@@ -42,6 +42,9 @@ logs/
 # Output files
 output/
 
+# Environment variables
+.env
+
 # Temporary files
 tmp/
 temp/
