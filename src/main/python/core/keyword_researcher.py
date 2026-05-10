@@ -1,6 +1,6 @@
 import os
 import json
-import anthropic
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -9,8 +9,12 @@ SYSTEM_PROMPT = """You are an expert SEO strategist with deep knowledge of searc
 
 When given a seed keyword or topic, you generate comprehensive keyword research data that helps content creators and marketers rank higher in search results."""
 
+
 def research_keywords(seed_keyword: str, count: int = 15) -> list[dict]:
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+    )
 
     prompt = f"""Perform keyword research for the seed keyword: "{seed_keyword}"
 
@@ -34,19 +38,18 @@ Return ONLY valid JSON in this exact format, no other text:
   ]
 }}"""
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=2000,
-        system=[
-            {
-                "type": "text",
-                "text": SYSTEM_PROMPT,
-                "cache_control": {"type": "ephemeral"},
-            }
+    response = client.chat.completions.create(
+        model="nvidia/nemotron-3-super-120b-a12b:free",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": prompt},
         ],
-        messages=[{"role": "user", "content": prompt}],
     )
 
-    raw = response.content[0].text.strip()
+    raw = response.choices[0].message.content.strip()
+    if raw.startswith("```"):
+        raw = raw[raw.index("\n") + 1:]
+        raw = raw[:raw.rfind("```")].strip()
+
     data = json.loads(raw)
     return data["keywords"]
