@@ -32,6 +32,18 @@ ENV/
 *.swp
 *.swo
 
+# C# / .NET
+bin/
+obj/
+*.user
+
+# Access database files
+*.accdb
+*.laccdb
+*.accdb.bak
+*.mdb
+*.ldb
+
 # OS
 .DS_Store
 Thumbs.db
